@@ -11,9 +11,15 @@
       <li class="singer-group" v-for="singers in data" ref="listGroup">
         <h3 class="singer-title">{{singers.title}}</h3>
         <ul>
-          <li class="singer-group-list" v-for="singer in singers.items">
+          <li
+            @click="selectItem(singer)"
+            class="singer-group-list"
+            v-for="singer in singers.items"
+          >
+
             <img class="singer-avatar" v-lazy="singer.avatar">
             <span class="singer-name">{{singer.name}}</span>
+
           </li>
         </ul>
       </li>
@@ -37,8 +43,6 @@
         {{fixedTitle}}
       </div>
     </div>
-
-
   </scroll>
 </template>
 
@@ -140,7 +144,9 @@
 
         //获取真实索引
         this.touch.theIndex = getAttrs(cur, 'theIndex');
-        this.curIndex = this.touch.theIndex;
+        if(anchorIndex > -1) {
+          this.curIndex = anchorIndex;
+        }
 
       },
 
@@ -161,13 +167,17 @@
         let Index = getAttrs(cur, 'index');
 
         if (Index > -1) {
-          this.curIndex = anchorIndex;
+          this.curIndex = Index;
           this.elementTo(this.$refs.listGroup[Index]);
         }
       },
 
       scroll(pos) {
         this.scrollY = pos.y;
+      },
+
+      selectItem(item) {
+        this.$emit('select',item)
       },
 
       classCom(item) {
@@ -301,6 +311,7 @@
       border-radius: 10px;
       font-family: Helvetica;
       text-align: center;
+      z-index: 5;
       li {
         color: $color-text-l;
         padding: 3px;

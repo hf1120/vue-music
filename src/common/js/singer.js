@@ -1,4 +1,4 @@
-export default class {
+export default class Singer{
   constructor(id, mid, name) {
     this.id = id;
     this.name = name;

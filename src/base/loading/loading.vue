@@ -1,7 +1,7 @@
 <template>
   <div class="loading">
     <img width="24px" height="24px" src="./loading.gif" alt="">
-    <p class="desc">{{title}}</p>
+    <p class="desc">{{theTitle}}</p>
     <span @click="retry" class="retry" v-show="retryIng">重试</span>
   </div>
 </template>
@@ -10,7 +10,6 @@
   export default {
     data() {
       return {
-        oldTitle: '',
         retryIng: false
       }
     },
@@ -34,13 +33,20 @@
     methods: {
       loadFail() {
         this.oldTitle = this.title;
-        this.title = '网络可能卡住，您可以点击尝试重新加载';
         this.retryIng = true;
       },
       retry() {
         this.retryIng = false;
-        this.title = this.oldTitle || '正在尝试重新加载...';
         this.replyFuc();
+      }
+    },
+
+    computed: {
+      theTitle() {
+        if(this.retryIng) {
+          return '网络可能卡住，点击尝试重新加载';
+        }
+        return this.title;
       }
     },
 

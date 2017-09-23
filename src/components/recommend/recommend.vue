@@ -4,7 +4,7 @@
       <div>
         <Slider :loadAImage="loadAImage"></Slider>
         <div class="recommend-list">
-          <h1 class="list-title">热门推荐歌单</h1>
+          <h1 class="list-title">热门歌单推荐</h1>
           <ul>
             <li class="item" v-for="list in discList">
               <div class="icon">
@@ -46,7 +46,9 @@
     },
 
     created() {
-      this._getDescList();
+      setTimeout(()=>{
+        this._getDescList();
+      },20)
     },
 
     methods: {
@@ -56,9 +58,9 @@
           .then((res)=>{
           if(res.code === ERR_OK){
             this.discList = res.data.list;
-            console.log(res.data.list);
           }
-        }).catch(err=>{
+        })
+          .catch(err=>{
           console.log('err');
           console.log(err);
         })

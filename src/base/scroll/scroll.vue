@@ -31,7 +31,7 @@
     mounted() {
       this.$nextTick(()=>{
         this._initScroll();
-      })
+      });
     },
 
     methods: {
