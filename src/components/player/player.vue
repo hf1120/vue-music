@@ -33,7 +33,13 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent" @progressChange="onProgressChange"></progress-bar>
+              <progress-bar
+                :percent="percent"
+                @progressChange="onProgressChange"
+                :duration="currentSong.duration"
+                @stopTime="stopTime"
+                @currentTime="currentTimeChange"
+              ></progress-bar>
             </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
@@ -103,7 +109,9 @@
     data() {
       return {
         songReady: false,
-        currentTime: ''}
+        currentTime: '',
+        stopTimeState: false
+      }
     },
 
     components: {
@@ -196,7 +204,7 @@
       },
 
       updateTime(e) {
-        this.currentTime = e.target.currentTime;
+        if(!this.stopTimeState) this.currentTime = e.target.currentTime;
       },
 
       format(interval) {
@@ -284,6 +292,15 @@
 
       onProgressChange(num) {
         this.$refs.audio.currentTime = num * this.currentSong.duration;
+        this.stopTimeState = false;
+      },
+
+      stopTime() {
+        this.stopTimeState = true;
+      },
+
+      currentTimeChange(num) {
+        this.currentTime = num * this.currentSong.duration;
       },
 
       ...mapMutations({

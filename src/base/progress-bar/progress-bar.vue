@@ -24,6 +24,11 @@
       percent: {
         type: Number,
         default: 0
+      },
+
+      duration: {
+        type: Number,
+        default: 0
       }
     },
 
@@ -36,6 +41,7 @@
         this.touch.initState = true;
         this.touch.offsetLeft = parseFloat(this.$refs.progressBar.offsetLeft) + 8;
         this._progressMove(e);
+        this.$emit('stopTime',false)
       },
 
       progressTouchMove(e) {
@@ -50,13 +56,16 @@
         let width = parseFloat(this.$refs.progressBar.clientWidth) - 16;
         if(offsetWidth > width) offsetWidth = width;
         this.$refs.progress.style.width = `${offsetWidth}px`;
-        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px,0,0)`;
+        let newPercent = parseFloat(this.$refs.progress.clientWidth) / (parseFloat(this.$refs.progressBar.clientWidth) - 16);
+
+        this.$emit('currentTime', newPercent);
       },
 
       progressTouchEnd() {
         this.touch.initState = false;
         let newPercent = parseFloat(this.$refs.progress.clientWidth) / (parseFloat(this.$refs.progressBar.clientWidth) - 16);
-        this.$emit('progressChange', newPercent)
+        this.$emit('progressChange', newPercent);
       }
     },
 
