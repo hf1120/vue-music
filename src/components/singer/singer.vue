@@ -10,6 +10,8 @@
    </div>
 </template>
 
+
+
 <script>
   import { getSingerList } from 'api/singer'
 
