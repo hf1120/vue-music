@@ -25,9 +25,7 @@
     },
 
     mounted() {
-      this.timer = setTimeout(() => {
-        this.loadFail();
-      },5000)
+      if(this.replyFuc) this.loaded();
     },
 
     methods: {
@@ -38,6 +36,13 @@
       retry() {
         this.retryIng = false;
         this.replyFuc();
+      },
+      loaded() {
+        this.timer && clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          this.loadFail();
+          this.loaded();
+        },5000)
       }
     },
 
@@ -50,7 +55,7 @@
       }
     },
 
-    destoryed(){
+    beforeDestroy(){
       clearTimeout(this.timer);
     }
   }

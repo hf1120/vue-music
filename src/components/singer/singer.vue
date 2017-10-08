@@ -1,6 +1,6 @@
 <template>
-   <div class="singer">
-     <list-view @select="selectSinger" :data="singerList"></list-view>
+   <div class="singer" ref="singer">
+     <list-view @select="selectSinger" :data="singerList" ref="listView"></list-view>
 
      <div v-show="!singerList.length" class="loading-container">
        <loading :replyFuc="_getSingerList"></loading>
@@ -14,6 +14,7 @@
 
 <script>
   import { getSingerList } from 'api/singer'
+  import { playlistMixin } from 'common/js/mixin'
 
   import Singer from 'common/js/singer'
 
@@ -30,16 +31,25 @@
       ListView,
       Loading
     },
+
     data() {
       return {
         singerList: []
       }
     },
+
+    mixins: [playlistMixin],
+
     mounted() {
       this._getSingerList();
     },
 
     methods: {
+      handlePlaylist(playlist) {
+        this.$refs.singer.style.bottom = playlist.length > 0 ? '50px' : "";
+        this.$refs.listView.refresh();
+      },
+
       _getSingerList(){
         getSingerList().then(res => {
           this.singerList = this._initData(res.data.list);

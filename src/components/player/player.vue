@@ -18,18 +18,44 @@
           <p class="album" v-html="currentSong.singer"></p>
         </div>
 
-        <div class="center">
-          <div class="center-l">
+        <div
+          class="center"
+          @touchstart.prevent="centerTouchStart"
+          @touchmove.prevent="centerTouchMove"
+          @touchend="centerTouchEnd"
+        >
+          <div class="center-l" ref="centerL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" ref="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">
+                {{playingLyric}}
+              </div>
+            </div>
           </div>
-          <div class="center-r"></div>
+          <scroll class="center-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p
+                  class="text"
+                  :class="{'current': currentLineNum === i}"
+                  ref="lyricLine"
+                  v-for="(line, i) in currentLyric.lines"
+                >{{line.txt}}</p>
+              </div>
+            </div>
+            <p v-show="showLyricTip" class="tip">此歌曲为没有填词的纯音乐，请您欣赏</p>
+          </scroll>
         </div>
 
         <div class="bom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active': currentShow === 'cd'}"></span>
+            <span class="dot" :class="{'active': currentShow === 'lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -45,8 +71,8 @@
           </div>
 
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="onModeChange">
+              <i :class="iconMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
@@ -61,11 +87,8 @@
               <i class="icon icon-not-favorite"></i>
             </div>
           </div>
-
         </div>
-
       </div>
-
     </transition>
 
     <transition name="sm">
@@ -95,6 +118,7 @@
       @canplay="ready"
       @error="error"
       @timeupdate="updateTime"
+      @ended="end"
     ></audio>
   </div>
 </template>
@@ -104,18 +128,33 @@
   import * as Types from 'store/mutation-types'
   import animations from 'create-keyframe-animation'
   import ProgressBar from 'base/progress-bar/progress-bar'
+  import {playMode} from 'common/js/config'
+  import {shuffle} from 'common/js/utils'
+  import Lyric from 'lyric-parser'
+  import Scroll from 'base/scroll/scroll'
+  import {prefixStyle} from 'common/js/dom'
+
+  const transform = prefixStyle('transform');
+  const transitionDuration = prefixStyle('transitionDuration');
 
   export default {
     data() {
       return {
         songReady: false,
-        currentTime: '',
-        stopTimeState: false
+        currentTime: null,
+        stopTimeState: false,
+        currentLyric: null,
+        currentLineNum: 0,
+        currentShow: 'cd',
+        playingLyric: '',
+        LyricTip: '此歌曲为没有填词的纯音乐，请您欣赏',
+        showLyricTip: false
       }
     },
 
     components: {
-      ProgressBar
+      ProgressBar,
+      Scroll
     },
 
     computed: {
@@ -139,27 +178,36 @@
         return this.currentTime / this.currentSong.duration;
       },
 
+      iconMode() {
+        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random';
+      },
+
       ...mapGetters([
         'fullScreen',
         'playlist',
+        'sequenceList',
         'currentSong',
         'currentIndex',
-        'playing'
+        'playing',
+        'mode'
       ]),
-
     },
 
     watch: {
-      currentSong() {
+      currentSong(newSong, oldSong) {
+        this.playingLyric = '';
+        if (newSong.id === oldSong.id) return;
+        if (this.currentLyric) this.currentLyric.stop();
         this.$nextTick(() => {
           this.$refs.audio.play();
+          this.getLyric();
         })
       },
 
       playing(newState) {
         const audio = this.$refs.audio;
         this.$nextTick(() => {
-          newState ? audio.play() : audio.pause()
+          newState ? audio.play() : audio.pause();
         })
       }
     },
@@ -174,37 +222,64 @@
       },
 
       play() {
+        if (!this.songReady) return;
         this.setPlaying(!this.playing);
+        if (this.currentLyric) this.currentLyric.togglePlay();
       },
 
       prev() {
-        if(!this.songReady) return;
-        let index = this.currentIndex - 1;
-        if(index === -1) index = this.playlist.length - 1;
-        this.setCurrentIndex(index);
-        if(!this.playing) this.play();
-        this.songReady = false;
+        if (!this.songReady) return;
+        if(this.playlist.length === 1) {
+          this.loop();
+        } else {
+          let index = this.currentIndex - 1;
+          if (index === -1) index = this.playlist.length - 1;
+          this.setCurrentIndex(index);
+          if (!this.playing) this.play();
+          this.songReady = false;
+        }
+
       },
 
       next() {
-        if(!this.songReady) return;
-        let index = this.currentIndex + 1;
-        if(index >= this.playlist.length) index = 0;
-        this.setCurrentIndex(index);
-        if(!this.playing) this.play();
-        this.songReady = false;
+        if (!this.songReady) return;
+
+        if(this.playlist.length === 1) {
+          this.loop();
+        } else {
+          let index = this.currentIndex + 1;
+          if (index >= this.playlist.length) index = 0;
+          this.setCurrentIndex(index);
+          if (!this.playing) this.play();
+          this.songReady = false;
+        }
+
+      },
+
+      loop() {
+        this.$refs.audio.currentTime = 0;
+        this.$refs.audio.play();
+        if (this.currentLyric) this.currentLyric.seek(0);
+      },
+
+      end() {
+        if (this.mode === playMode.loop) {
+          this.loop();
+        } else {
+          this.next();
+        }
       },
 
       ready() {
         this.songReady = true;
       },
 
-      error(){
+      error() {
         this.songReady = true;
       },
 
       updateTime(e) {
-        if(!this.stopTimeState) this.currentTime = e.target.currentTime;
+        if (!this.stopTimeState) this.currentTime = e.target.currentTime;
       },
 
       format(interval) {
@@ -213,7 +288,7 @@
         let hours = interval / 3600 | 0;
         let minutes = interval / 60 | 0;
         let second = interval % 60;
-        if(hours > 0) str = this._pad(hours) + ":";
+        if (hours > 0) str = this._pad(hours) + ":";
 
         minutes = this._pad(minutes);
         second = this._pad(second);
@@ -291,8 +366,31 @@
       },
 
       onProgressChange(num) {
-        this.$refs.audio.currentTime = num * this.currentSong.duration;
+        const currentTime = num * this.currentSong.duration;
+        this.$refs.audio.currentTime = currentTime;
         this.stopTimeState = false;
+        if (this.currentLyric) this.currentLyric.seek(currentTime * 1000);
+
+      },
+
+      onModeChange() {
+        const mode = (this.mode + 1) % 3;
+        this.setPlayMode(mode);
+        let list = null;
+        if (mode === playMode.random) {
+          list = shuffle(this.sequenceList);
+        } else {
+          list = this.sequenceList;
+        }
+        this.resetCurrentIndex(list);
+        this.setPlayList(list);
+      },
+
+      resetCurrentIndex(list) {
+        let index = list.findIndex((item) => {
+          return item.id === this.currentSong.id;
+        });
+        this.setCurrentIndex(index);
       },
 
       stopTime() {
@@ -303,12 +401,129 @@
         this.currentTime = num * this.currentSong.duration;
       },
 
+      getLyric() {
+        this.showLyricTip = false;
+        this.currentSong.getLyric().then((lyric) => {
+          if(lyric.indexOf('此歌曲为没有填词的纯音乐') > -1) {
+            this.playingLyric = '此歌曲为没有填词的纯音乐，请您欣赏';
+            this.LyricTip = this.playingLyric;
+            this.showLyricTip = true;
+          }
+          this.currentLyric = new Lyric(lyric, this.handleLyric);
+          if (this.playing) this.currentLyric.play();
+        }).catch(() => {
+          this.currentLyric = null;
+          this.playingLyric = '未获取到歌词';
+          this.LyricTip = this.playingLyric;
+          this.currentLineNum = 0;
+          this.showLyricTip = true;
+        })
+      },
+
+      handleLyric({lineNum, txt}) {
+        this.currentLineNum = lineNum;
+        if (lineNum > 5) {
+          let lineEl = this.$refs.lyricLine[lineNum - 5];
+          this.$refs.lyricList.scrollToElement(lineEl, 1000);
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000);
+        }
+        this.playingLyric = txt;
+      },
+
+      centerTouchStart(e) {
+        this.touch.inited = true;
+        const touch = e.touches[0];
+        this.touch.startX = touch.pageX;
+        this.touch.startY = touch.pageY;
+      },
+
+      centerTouchMove(e) {
+        if (!this.touch.inited) return;
+        if (this.touch.move === false) return;
+
+        const touch = e.touches[0];
+        const deltaX = touch.pageX - this.touch.startX;
+        const deltaY = touch.pageY - this.touch.startY;
+
+        if (this.touch.move === null) {
+          if (Math.abs(deltaX) < Math.abs(deltaY)) {
+            this.touch.move = false;
+            return;
+          }
+          this.touch.move = true;
+        }
+
+        const left = this.currentShow === 'cd' ? 0 : -window.innerWidth;
+        const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX));
+        this.touch.percent = Math.abs(offsetWidth / window.innerWidth);
+        this.$refs.centerL.style.opacity = 1 - this.touch.percent;
+
+        if (!this.touch.areStyle) {
+          this.$refs.lyricList.$el.style[transitionDuration] = `0ms`;
+          this.$refs.centerL.style[transitionDuration] = `0ms`;
+          this.touch.areStyle = true;
+        }
+
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`;
+      },
+
+      centerTouchEnd() {
+        this.touch.inited = false;
+
+        if (!this.touch.percent || !this.touch.move) {
+          this.touch.move = null;
+          return;
+        }
+
+        let offsetWidth;
+        let opacity;
+        if (this.currentShow === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offsetWidth = -window.innerWidth;
+            this.currentShow = 'lyric';
+            opacity = 0;
+          } else {
+            opacity = 1;
+            offsetWidth = 0;
+          }
+        } else {
+          if (this.touch.percent < 0.9) {
+            offsetWidth = 0;
+            this.currentShow = 'cd';
+            opacity = 1;
+          } else {
+            opacity = 0;
+            offsetWidth = -window.innerWidth;
+          }
+        }
+        const time = 300;
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`;
+        this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`;
+
+        this.$refs.centerL.style.opacity = opacity;
+        this.$refs.centerL.style[transitionDuration] = `${time}ms`;
+
+        this.touch.areStyle = false;
+
+        this.touch.percent = null;
+        this.touch.move = null;
+      },
+
       ...mapMutations({
         'setFullScreen': Types.SET_FULL_SCREEN,
         'setPlaying': Types.SET_PLAYING_STATE,
-        'setCurrentIndex' : Types.SET_CURRENT_INDEX
+        'setCurrentIndex': Types.SET_CURRENT_INDEX,
+        'setPlayMode': Types.SET_PLAY_MODE,
+        'setPlayList': Types.SET_PLAY_LIST
       })
 
+    },
+
+    created() {
+      this.touch = {
+        move: null
+      };
     }
   }
 </script>
@@ -340,23 +555,30 @@
 
       .top {
         .icon-back {
-          display: inline-block;
           transform: rotate(-90deg);
-          padding: 9px;
           font-size: $font-size-large-x;
           color: $color-theme;
+          position: absolute;
+          left: 9px;
+          top: 9px;
         }
 
         .songTitle {
-          width: 80%;
-          display: inline-block;
+          width: 70%;
+          margin: 0 auto;
           text-align: center;
           line-height: 39px;
           vertical-align: top;
+          font-size: $font-size-large;
+          color: $color-text;
+          no-wrap()
         }
 
         .album {
-          text-align: center
+          text-align: center;
+          font-size: $font-size-medium;
+          color: $color-text;
+          line-height: 20px;
         }
 
       }
@@ -366,14 +588,30 @@
         position: fixed;
         top: 80px;
         bottom: 170px;
-        /*white-space: nowrap;*/
+        white-space: nowrap;
         font-size: 0;
 
         .center-l {
+          display: inline-block;
+          vertical-align: top;
+          position: relative;
           width: 100%;
           height: 0;
           padding-top: 80%;
-          position: relative
+
+          .playing-lyric-wrapper {
+            width: 80%;
+            margin: 30px auto 0 auto;
+            overflow: hidden;
+            text-align: center;
+            .playing-lyric {
+              height: 20px;
+              line-height: 20px;
+              font-size: $font-size-medium;
+              color: $color-text-l;
+            }
+
+          }
 
           .cd-wrapper {
             width: 80%;
@@ -409,12 +647,61 @@
           }
 
         }
+        .center-r {
+          display: inline-block;
+          vertical-align: top;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          .lyric-wrapper {
+            width: 80%;
+            margin: 0 auto;
+            overflow: hidden;
+            text-align: center;
+            .text {
+              line-height: 32px;
+              color: $color-text-l;
+              font-size: $font-size-medium;
+              &.current {
+                color: $color-text;
+              }
+            }
+          }
+          .tip {
+            width: 100%;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+          }
+        }
       }
 
       .bom {
         position: absolute;
         bottom: 50px;
         width: 100%;
+        .dot-wrapper {
+          text-align: center
+          font-size: 0
+          .dot {
+            display: inline-block
+            vertical-align: middle
+            margin: 0 4px
+            width: 8px
+            height: 8px
+            border-radius: 50%
+            background: $color-text-l
+            &.active {
+              width: 20px
+              border-radius: 5px
+              background: $color-text-ll
+            }
+          }
+
+        }
+
         .progress-wrapper {
           display: flex;
           align-items: center;

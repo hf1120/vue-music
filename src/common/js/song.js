@@ -1,3 +1,9 @@
+import {getLyric as _getLyric} from "../../api/song"
+import {Base64} from 'js-base64'
+import {ERR_OK} from "../../api/config"
+
+
+
 class Song {
   constructor({id, mid, singer, name, album, duration, image, url}){
     this.id       = id;
@@ -8,6 +14,22 @@ class Song {
     this.image    = image;
     this.url      = url;
     this.name     = name;
+  }
+
+  getLyric() {
+    if(this.lyric) return Promise.resolve(this.lyric);
+
+    return new Promise((resolve, reject) => {
+      _getLyric(this.mid).then(res => {
+        if(res.retcode === ERR_OK) {
+          this.lyric = Base64.decode(res.lyric);
+          resolve(this.lyric);
+        } else {
+          reject('没有找到歌词')
+        }
+      })
+    })
+
   }
 }
 
@@ -25,7 +47,7 @@ export function createSong(musicData) {
   });
 }
 
-function filterSinger(singer) {
+export function filterSinger(singer) {
   if(!singer || typeof singer !== 'object') return;
 
   let ret = [];

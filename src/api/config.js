@@ -11,3 +11,5 @@ export const options = {
 };
 
 export const ERR_OK = 0;
+
+export const URL = 'http://' + location.href.split('//')[1].split('/')[0].split(':')[0] + ':3000';

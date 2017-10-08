@@ -14,7 +14,7 @@ const mutations = {
     state.fullScreen = flag;
   },
 
-  [types.SET_PLAY_LIST](state ,list){
+  [types.SET_PLAY_LIST](state, list) {
     state.playList = list;
   },
 
@@ -28,6 +28,14 @@ const mutations = {
 
   [types.SET_CURRENT_INDEX](state, index) {
     state.currentIndex = index;
+  },
+
+  [types.SET_DISC](state, disc) {
+    state.disc = disc;
+  },
+
+  [types.SET_TOP_LIST](state, topList) {
+    state.topList = topList;
   }
 
 };

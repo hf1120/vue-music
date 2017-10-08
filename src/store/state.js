@@ -7,6 +7,8 @@ const state = {
   sequenceList : [],                 // 顺序列表
   mode         : playMode.sequence,  // 播放模式
   currentIndex : -1,                 // 当前索引
+  disc         : {},                 // 当前歌单
+  topList      : [],                 // 当前榜单
 };
 
 /*

@@ -5,12 +5,12 @@
     </div>
 
     <div class="music-list-title">
-      <h1 class="title">{{title}}</h1>
+      <h1 class="title" v-html="title"></h1>
     </div>
 
     <div class="bg-image" :style="bg" ref="bgImage">
       <div class="play-wrapper">
-        <div ref="playBtn" v-show="songs.length>0" class="play">
+        <div ref="playBtn" v-show="songs.length>0" class="play" @click="_randomPlay">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -27,13 +27,12 @@
       :listen-scroll="listenScroll"
       :data="songs" class="list" ref="list">
       <div class="song-list-wrapper">
-        <song-list @select="selectItem" :songs="songs"></song-list>
+        <song-list @select="selectItem" :songs="songs" :rank="rank"></song-list>
       </div>
       <div class="loading">
         <loading v-show="!songs.length" :replyFuc="replyFuc"></loading>
       </div>
     </scroll>
-
 
     <!--不保留这一段，UC浏览器下会出现歌手列表显示不正常的问题-->
     <span class="test1">{{songs.length}}</span>
@@ -46,6 +45,7 @@
   import SongList from 'base/song-list/song-list'
   import Loading from 'base/loading/loading'
   import { mapActions } from 'vuex'
+  import { playlistMixin } from 'common/js/mixin'
 
   const RESERVED_HEIGHT = 50;
 
@@ -55,6 +55,9 @@
         scrollY: -1
       }
     },
+
+    mixins: [playlistMixin],
+
     components: {
       Scroll,
       SongList,
@@ -80,6 +83,11 @@
       replyFuc: {
         type: Function,
         default: ''
+      },
+
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
 
@@ -116,8 +124,20 @@
         })
       },
 
+      _randomPlay() {
+        this.randomPlay({
+          list: this.songs,
+        });
+      },
+
+      handlePlaylist(playlist) {
+        this.$refs.list.$el.style.bottom = playlist.length > 0 ? '30px' : "";;
+        this.$refs.list.refresh();
+      },
+
       ...mapActions([
-        'selectPlay'
+        'selectPlay',
+        'randomPlay'
       ])
     },
 
@@ -175,6 +195,7 @@
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
+  @import "~common/stylus/mixin"
   .music-list {
     position: fixed;
     top: 0;

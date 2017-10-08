@@ -23,7 +23,6 @@ let vendor = (() => {
       return key;
     }
   }
-
   return false;
 })();
 

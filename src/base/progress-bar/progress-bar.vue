@@ -39,7 +39,8 @@
     methods: {
       progressTouchStart(e) {
         this.touch.initState = true;
-        this.touch.offsetLeft = parseFloat(this.$refs.progressBar.offsetLeft) + 8;
+        let offsetLeft = this.$refs.progressBar.getBoundingClientRect().left;
+        this.touch.offsetLeft = parseFloat(offsetLeft) + 8;
         this._progressMove(e);
         this.$emit('stopTime',false)
       },

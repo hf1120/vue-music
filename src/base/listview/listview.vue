@@ -133,6 +133,10 @@
     },
 
     methods: {
+      refresh() {
+        this.$refs.listview.refresh();
+      },
+
       onShortcutTouchStart(e) {
         let cur = e.target;
         let anchorIndex = getAttrs(cur, 'index');
