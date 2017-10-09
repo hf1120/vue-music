@@ -33,22 +33,22 @@
 
 部分内容展示：
 - 歌单推荐
-![Alt text](https://github.com/thinkupp/vue-music/pic/songList.png)
+![Alt text](https://github.com/thinkupp/vue-music/tree/master/pic/songList.png)
 
 - 歌手列表
-![Alt text](https://github.com/thinkupp/vue-music/pic/singer.png)
+![Alt text](https://github.com/thinkupp/vue-music/tree/master/pic/singer.png)
 
 - 歌手详情
-![Alt text](https://github.com/thinkupp/vue-music/pic/singerDetail.png)
+![Alt text](https://github.com/thinkupp/vue-music/tree/master/pic/singerDetail.png)
 
 - 歌单排行
-![Alt text](https://github.com/thinkupp/vue-music/pic/songRank.png)
+![Alt text](https://github.com/thinkupp/vue-music/tree/master/pic/songRank.png)
 
 - 播放内核
-![Alt text](https://github.com/thinkupp/vue-music/pic/player.png)
+![Alt text](https://github.com/thinkupp/vue-music/tree/master/pic/player.png)
 
 - 加载效果
-![Alt text](https://github.com/thinkupp/vue-music/pic/loading.png)
+![Alt text](https://github.com/thinkupp/vue-music/tree/master/pic/loading.png)
 
 待添加内容：
 
