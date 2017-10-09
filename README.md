@@ -29,25 +29,31 @@
 
 · 前端：Vue + vuex + webpack + nodeJS + JSONP + axios
 
-· 后台：大部分接口都是通过 JSONP 跨域请求的，但是有两个特殊的接口需要模拟请求头，所以在 NodeJS 里通过 axios 获取。（项目演示的服务器上已经部署 nodeJS）
+· 后台：大部分接口都是通过 JSONP 跨域请求的，但是有两个特殊的接口限制了 host，所以在 NodeJS 里通过 axios 代理设置 header 获取。（项目演示的服务器上已经部署 nodeJS）
 
 部分内容展示：
 - 歌单推荐
+
 ![Alt text](https://github.com/thinkupp/vue-music/blob/master/pic/songList.png)
 
 - 歌手列表
+
 ![Alt text](https://github.com/thinkupp/vue-music/blob/master/pic/singer.png)
 
 - 歌手详情
+
 ![Alt text](https://github.com/thinkupp/vue-music/blob/master/pic/singerDetail.png)
 
 - 歌单排行
+
 ![Alt text](https://github.com/thinkupp/vue-music/blob/master/pic/songRank.png)
 
 - 播放内核
+
 ![Alt text](https://github.com/thinkupp/vue-music/blob/master/pic/player.png)
 
 - 加载效果
+
 ![Alt text](https://github.com/thinkupp/vue-music/blob/master/pic/loading.png)
 
 待添加内容：
