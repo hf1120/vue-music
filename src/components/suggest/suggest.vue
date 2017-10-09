@@ -9,7 +9,7 @@
         </div>
 
         <div class="name">
-          <p class="text" v-html="getDisplayName(item)"></p>
+          <p class="text"  v-html="getDisplayName(item)"></p>
         </div>
 
       </li>
