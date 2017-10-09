@@ -1,5 +1,5 @@
 <template>
-  <scroll :data="result" class="suggest" ref="suggest">
+  <scroll :pullUp="true" :data="result" class="suggest" ref="suggest" @scrollToEnd="searchMore">
     <ul class="suggest-list">
 
       <li @click="play(item)" class="suggest-item" v-for="item in result">
@@ -14,6 +14,7 @@
 
       </li>
 
+      <loading v-show="hasMore && result.length" title="加载更多啊"></loading>
     </ul>
 
     <div class="loading-container" v-show="!result.length">
@@ -29,13 +30,18 @@
   import Loading from 'base/loading/loading'
   import Scroll from 'base/scroll/scroll'
   import {mapGetters, mapActions, mapMutations} from 'vuex'
+
+
   import * as types from 'store/mutation-types'
+
+  const perPage = 20;
 
   export default {
     data() {
       return {
-        curPage: 1,
-        result: []
+        result: [],
+        hasMore: false,
+        page: 1
       }
     },
 
@@ -69,21 +75,47 @@
 
     methods: {
       _searchKey() {
+        this.page = 1;
         this.result = [];
+        this.hasMore = true;
         if (this.query) {
           searchKey(
             this.query,
             this.page,
-            this.showSinger
+            this.showSinger,
+            perPage
           ).then((res) => {
             if (res.code === 0) {
               this.result = this._getResult(res.data);
+              this._checkMore(res.data);
             }
           }).catch(err => {
-            if(err.message.toLocaleLowerCase() === 'timeout') {
+            if (err.message.toLocaleLowerCase() === 'timeout') {
               this._searchKey();
             }
           })
+        }
+      },
+
+      searchMore() {
+        if (!this.hasMore) return;
+        this.page++;
+
+        searchKey(this.query, this.page, this.showSinger, perPage).then(res => {
+          if (res.code === 0) {
+            this.result = this.result.concat(this._getResult(res.data));
+            this._checkMore(res.data);
+          }
+        }).catch(err => {
+          this.page--;
+          this.searchMore();
+        })
+      },
+
+      _checkMore(data) {
+        const song = data.song;
+        if (!song.list.length || (song.curnum + song.curpage * perPage) >= song.totalnum) {
+          this.hasMore = false;
         }
       },
 
@@ -100,9 +132,9 @@
       },
 
       _normalizeSongs(list) {
-        let ret= [];
+        let ret = [];
         list.forEach(musicData => {
-          if(musicData.songid && musicData.albumid) {
+          if (musicData.songid && musicData.albumid) {
             ret.push(createSong(musicData));
           }
         });
@@ -117,7 +149,7 @@
       },
 
       getDisplayName(item) {
-        if(item.type === TYPE_SINGER) {
+        if (item.type === TYPE_SINGER) {
           return item.singername;
         }
         return `${item.name} - ${item.singer}`
@@ -128,7 +160,7 @@
       },
 
       play(item) {
-        if(this.playlist && this.playlist.length) {
+        if (this.playlist && this.playlist.length) {
           this.addSong(item);
         } else {
           this.selectPlay({
@@ -167,7 +199,7 @@
       .suggest-item {
         display: flex;
         align-items: center;
-        padding-bottom: 20 px;
+        padding-bottom: 20px;
       }
 
       .icon {
@@ -204,5 +236,6 @@
       top: 50%;
       transform: translateY(-50%);
     }
+
   }
 </style>

@@ -64,7 +64,6 @@
 
       onQueryChange(query) {
         this.query = query;
-        console.log(query);
         this.$refs.suggest._searchKey();
       },
 
