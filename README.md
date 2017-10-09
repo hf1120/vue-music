@@ -28,26 +28,27 @@
 - 歌单头像、歌手头像图片懒加载
 
 · 前端：Vue + vuex + webpack + nodeJS + JSONP + axios
+
 · 后台：大部分接口都是通过 JSONP 跨域请求的，但是有两个特殊的接口需要模拟请求头，所以在 NodeJS 里通过 axios 获取。（项目演示的服务器上已经部署 nodeJS）
 
 部分内容展示：
 - 歌单推荐
-![image](https://github.com/thinkupp/vue-music/pic/WX20171009-162411@2x.png)
+![Alt text](https://github.com/thinkupp/vue-music/pic/songList.png)
 
 - 歌手列表
-![image](https://github.com/thinkupp/vue-music/pic/WX20171009-162436@2x.png)
+![Alt text](https://github.com/thinkupp/vue-music/pic/singer.png)
 
 - 歌手详情
-![image](https://github.com/thinkupp/vue-music/pic/WX20171009-162722@2x.png)
+![Alt text](https://github.com/thinkupp/vue-music/pic/singerDetail.png)
 
 - 歌单排行
-![image](https://github.com/thinkupp/vue-music/pic/WX20171009-162541@2x.png)
+![Alt text](https://github.com/thinkupp/vue-music/pic/songRank.png)
 
 - 播放内核
-![image](https://github.com/thinkupp/vue-music/pic/WX20171009-162640@2x.png)
+![Alt text](https://github.com/thinkupp/vue-music/pic/player.png)
 
 - 加载效果
-![image](https://github.com/thinkupp/vue-music/pic/WX20171009-163041@2x.png)
+![Alt text](https://github.com/thinkupp/vue-music/pic/loading.png)
 
 待添加内容：
 
