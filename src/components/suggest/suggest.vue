@@ -1,8 +1,15 @@
 <template>
-  <scroll :pullUp="true" :data="result" class="suggest" ref="suggest" @scrollToEnd="searchMore">
+
+  <scroll @beforeScroll="listScroll"
+          :pullUp="true"
+          :beforeScroll="true"
+          :data="result"
+          class="suggest"
+          ref="suggest"
+          @scrollToEnd="searchMore">
     <ul class="suggest-list">
 
-      <li @click="play(item)" class="suggest-item" v-for="item in result">
+      <li @click="selectItem(item)" class="suggest-item" v-for="item in result">
 
         <div class="icon">
           <i :class="getIconCls(item)"></i>
@@ -14,13 +21,18 @@
 
       </li>
 
-      <loading v-show="hasMore && result.length" title="加载更多啊"></loading>
+      <loading v-show="hasMore" title="加载更多啊"></loading>
     </ul>
 
-    <div class="loading-container" v-show="!result.length">
+    <div class="no-result-wrapper">
+      <no-result v-show="noResult" title="没有找到您搜索的歌曲或歌手"></no-result>
+    </div>
+
+    <div class="loading-container" v-show="!result.length && !noResult">
       <loading></loading>
     </div>
   </scroll>
+
 </template>
 
 <script>
@@ -30,6 +42,8 @@
   import Loading from 'base/loading/loading'
   import Scroll from 'base/scroll/scroll'
   import {mapGetters, mapActions, mapMutations} from 'vuex'
+  import Singer from 'common/js/singer'
+  import NoResult from 'base/no-result/no-result'
 
 
   import * as types from 'store/mutation-types'
@@ -41,7 +55,8 @@
       return {
         result: [],
         hasMore: false,
-        page: 1
+        page: 1,
+        noResult: false
       }
     },
 
@@ -64,7 +79,8 @@
 
     components: {
       Loading,
-      Scroll
+      Scroll,
+      NoResult
     },
 
     computed: {
@@ -77,7 +93,8 @@
       _searchKey() {
         this.page = 1;
         this.result = [];
-        this.hasMore = true;
+        this.hasMore = false;
+        this.noResult = false;
         if (this.query) {
           searchKey(
             this.query,
@@ -85,6 +102,10 @@
             this.showSinger,
             perPage
           ).then((res) => {
+            // 当拿到的数据没有内容时，要提示用户
+            if(res.data.song.list.length === 0) this.noResult = true;
+            console.log(res);
+
             if (res.code === 0) {
               this.result = this._getResult(res.data);
               this._checkMore(res.data);
@@ -114,6 +135,9 @@
 
       _checkMore(data) {
         const song = data.song;
+        if(song) {
+          this.hasMore = true;
+        }
         if (!song.list.length || (song.curnum + song.curpage * perPage) >= song.totalnum) {
           this.hasMore = false;
         }
@@ -159,25 +183,36 @@
         this.$refs.suggest.refresh();
       },
 
-      play(item) {
-        if (this.playlist && this.playlist.length) {
-          this.addSong(item);
-        } else {
-          this.selectPlay({
-            list: [item],
-            index: 0
+      selectItem(item) {
+        if(item.type === TYPE_SINGER) {
+          const singer = new Singer({
+            id   : item.singerid,
+            mid  : item.singermid,
+            name : item.singername
           });
+
+          this.$router.push({
+            path: `/search/${singer.id}`
+          });
+
+          this.setSinger(singer);
+
+          return;
         }
+        this.insertSong(item);
+      },
+
+      listScroll() {
+        this.$emit('listScroll');
       },
 
       ...mapMutations({
-        "setPlayList": types.SET_PLAY_LIST,
-        "setCurrentIndex": types.SET_CURRENT_INDEX
+        "setSinger": types.SET_SINGER,
       }),
 
       ...mapActions([
         'selectPlay',
-        'addSong'
+        'insertSong'
       ])
 
     },
@@ -227,7 +262,7 @@
       position: absolute;
       width: 100%;
       top: 50%;
-      transfrom: translateY(-50%);
+      transform: translateY(-50%);
     }
 
     .loading-container {

@@ -65,7 +65,11 @@
         };
         list.forEach((item, index) => {
           //提取歌手信息
-          let cur = new Singer(item.Fsinger_id, item.Fsinger_mid, item.Fsinger_name);
+          let cur = new Singer({
+            id   : item.Fsinger_id,
+            mid  : item.Fsinger_mid,
+            name : item.Fsinger_name
+          });
 
           //存放热门歌手
           if(index < HOT_SINGER_LEN){

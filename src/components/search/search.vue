@@ -1,7 +1,7 @@
 <template>
   <div class="search">
     <div class="search-box-wrapper">
-      <search-box @query="onQueryChange" ref="searchBox"></search-box>
+      <search-box ref="searchBox" @query="onQueryChange"></search-box>
     </div>
 
     <div class="shortcut-wrapper" v-show="!query">
@@ -18,8 +18,10 @@
     </div>
 
     <div class="search-result" v-show="query" ref="searchResult">
-      <suggest class="suggest" :query="query" ref="suggest"></suggest>
+      <suggest @listScroll="blurInput" class="suggest" :query="query" ref="suggest"></suggest>
     </div>
+
+    <router-view></router-view>
   </div>
 </template>
 
@@ -71,6 +73,11 @@
         const bottom = playlist.length ? '50px' : "";
         this.$refs.searchResult.style.bottom = bottom;
         this.$refs.suggest.refresh();
+      },
+
+      blurInput() {
+//        this.$refs.searchBox.$refs.searchInput.blur();
+        this.$refs.searchBox.blur();
       }
 
     },

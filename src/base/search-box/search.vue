@@ -2,7 +2,7 @@
   <div class="search-box">
 
     <i class="icon-search"></i>
-    <input class="box" @keydown="InputMouseEnter" v-model="query" :placeholder="placeholder">
+    <input class="box" @keydown="InputMouseEnter" v-model="query" :placeholder="placeholder" ref="searchInput">
     <i @click="clear" v-show="query" class="icon-dismiss"></i>
 
   </div>
@@ -40,6 +40,10 @@
           this.keyChange = false;
           this.$emit('query', this.query);
         }
+      },
+
+      blur() {
+        this.$refs.searchInput.blur();
       }
     },
 

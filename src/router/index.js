@@ -9,7 +9,6 @@ import Dist from 'components/disc/disc'
 import topList from 'components/top-list/top-list'
 Vue.use(Router);
 export default new Router({
-  mode: 'history',
   routes: [
     {
       path: '/',
@@ -51,12 +50,13 @@ export default new Router({
 
     {
       path: '/search',
-      component: Search
-    },
-
-    {
-      path: '*',
-      component: Recommend
+      component: Search,
+      children: [
+        {
+          path      : ':id',
+          component : SingerDetail
+        }
+      ]
     }
   ]
 })
