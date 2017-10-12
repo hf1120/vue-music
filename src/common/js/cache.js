@@ -15,25 +15,24 @@ export const removeHistory = function (query) {
   if (!query) {
     // 如果 query 不存在，则表示清空 History
     localStorage.removeItem(SEARCH_HISTORY);
-    return;
+    return [];
   }
   // 拿到本地数据
-  let history = getHistory();
+  let history = getItem(SEARCH_HISTORY, []);
 
   // 如果数据不存在直接终止函数
-  if (!history) return;
-
-  // 将拿到的数据转换成数组
-  history = JSON.parse(history);
+  if (!history) return [];
 
   // 首先要保证这个记录的有效性
   let index = findItem(history, query);
 
   // 只在索引有效的情况下进行操作
-  if (index > 0) {
+  if (index > -1) {
     history.splice(index, 1);
     setItem(history);
   }
+
+  return history;
 };
 
 function setItem(data) {

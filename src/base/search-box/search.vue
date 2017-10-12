@@ -2,7 +2,11 @@
   <div class="search-box">
 
     <i class="icon-search"></i>
-    <input class="box" @keydown="InputMouseEnter" v-model="query" :placeholder="placeholder" ref="searchInput">
+    <input class="box"
+           @keydown="InputMouseEnter"
+           v-model="query"
+           :placeholder="placeholder"
+           ref="searchInput">
     <i @click="clear" v-show="query" class="icon-dismiss"></i>
 
   </div>
