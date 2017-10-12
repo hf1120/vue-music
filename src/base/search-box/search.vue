@@ -39,6 +39,7 @@
         if(e.keyCode === 13 && this.keyChange && this.query) {
           this.keyChange = false;
           this.$emit('query', this.query);
+          this.$refs.searchInput.blur();
         }
       },
 
