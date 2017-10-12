@@ -18,7 +18,7 @@
     </div>
 
     <div class="search-result" v-show="query" ref="searchResult">
-      <suggest @listScroll="blurInput" class="suggest" :query="query" ref="suggest"></suggest>
+      <suggest @select="saveSearch" @listScroll="blurInput" class="suggest" :query="query" ref="suggest"></suggest>
     </div>
 
     <router-view></router-view>
@@ -30,6 +30,7 @@
   import {getHotKey} from 'api/search'
   import Suggest from 'components/suggest/suggest'
   import {playlistMixin} from 'common/js/mixin'
+  import { mapActions } from 'vuex'
 
   export default {
     data() {
@@ -78,7 +79,15 @@
       blurInput() {
 //        this.$refs.searchBox.$refs.searchInput.blur();
         this.$refs.searchBox.blur();
-      }
+      },
+
+      saveSearch() {
+        if(this.query !== "") this.saveSearchHistory(this.query);
+      },
+
+      ...mapActions([
+        'saveSearchHistory'
+      ])
 
     },
 
@@ -150,7 +159,6 @@
         }
 
       }
-
     }
 
     .search-result {

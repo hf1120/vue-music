@@ -1,5 +1,5 @@
 import * as types from './mutation-types'
-import {playList} from "./getters";
+import {playList, searchHistory} from "./getters";
 
 const mutations = {
   [types.SET_SINGER](state, singer) {
@@ -36,6 +36,10 @@ const mutations = {
 
   [types.SET_TOP_LIST](state, topList) {
     state.topList = topList;
+  },
+
+  [types.SET_SEARCH_HISTORY](state, history) {
+    state.searchHistory = history;
   }
 
 };

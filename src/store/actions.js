@@ -1,6 +1,7 @@
 import * as types from './mutation-types'
 import {playMode} from "../common/js/config"
 import {shuffle} from "../common/js/utils"
+import { setHistory } from '../common/js/cache'
 
 function findIndex(list, song) {
   return list.findIndex((item) => {
@@ -43,7 +44,6 @@ export const insertSong = function ({commit, state}, song) {
   let theIndex = findIndex(playlist, song);
 
   if (theIndex < 0) {
-
     if(currentIndex > -1) {
       // 如果不存在则添加到当前歌曲的后面
       playlist.splice(currentIndex, 0, song);
@@ -80,3 +80,7 @@ export const insertSong = function ({commit, state}, song) {
   // 将播放状态设置为播放
   commit(types.SET_PLAYING_STATE, true);
 };
+
+export const saveSearchHistory = function ({commit}, query) {
+  commit(types.SET_SEARCH_HISTORY, setHistory(query));
+}

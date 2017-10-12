@@ -95,7 +95,9 @@
         this.result = [];
         this.hasMore = false;
         this.noResult = false;
-        if (this.query) {
+        this.$emit('select');
+
+        if (this.query !== "") {
           searchKey(
             this.query,
             this.page,
@@ -104,7 +106,6 @@
           ).then((res) => {
             // 当拿到的数据没有内容时，要提示用户
             if(res.data.song.list.length === 0) this.noResult = true;
-            console.log(res);
 
             if (res.code === 0) {
               this.result = this._getResult(res.data);

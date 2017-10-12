@@ -15,3 +15,5 @@ export const SET_CURRENT_INDEX = 'currentIndex';
 export const SET_DISC = 'disc';
 
 export const SET_TOP_LIST = 'set_top_list';
+
+export const SET_SEARCH_HISTORY = 'set_search_history';
