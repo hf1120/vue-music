@@ -2,7 +2,7 @@
   "name": "vue-music",
   "version": "1.0.0",
   "description": "基于vue的移动音乐播放器",
-  "author": "mr.zhang <blackness@126.com>",
+  "author": "hf",
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
